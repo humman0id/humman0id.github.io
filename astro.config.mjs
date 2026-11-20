@@ -6,7 +6,7 @@ import rehypeKatex from 'rehype-katex';
 
 // Replace <your-github-username> with your actual GitHub username
 export default defineConfig({
-  site: 'https://<your-github-username>.github.io',
+  site: 'https://humman0id.github.io',
   integrations: [mdx(), sitemap()],
   markdown: {
     remarkPlugins: [remarkMath],
