@@ -1,0 +1,48 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, pubDate, updatedDate, tags } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <BaseHead title={title} description={description} />
+  </head>
+  <body>
+    <Header />
+    <main>
+      <article>
+        <div style="margin-bottom: 2rem;">
+          <h1 style="margin-top: 0;">{title}</h1>
+          <div style="color: var(--muted); font-size: 0.9rem;">
+            <time datetime={pubDate.toISOString()}>
+              {pubDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </time>
+            {updatedDate && (
+              <span>
+                {' '} (Updated: {updatedDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })})
+              </span>
+            )}
+          </div>
+          {tags && tags.length > 0 && (
+            <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              {tags.map((tag) => (
+                <span style="font-size: 0.8rem; background: var(--code-bg); padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border);">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 2rem;" />
+        <slot />
+      </article>
+    </main>
+    <Footer />
+  </body>
+</html>
