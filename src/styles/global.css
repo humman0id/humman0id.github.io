@@ -14,6 +14,8 @@
   --tag-text: #7c2d12;
   --code-bg: #f2ede3;
   --code-header: #e8e1d4;
+  --net-rgb: 120, 110, 98;
+  --net-accent-rgb: 166, 58, 30;
   --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
@@ -34,6 +36,8 @@
   --tag-text: #f0a893;
   --code-bg: #1a1714;
   --code-header: #221e1a;
+  --net-rgb: 150, 140, 128;
+  --net-accent-rgb: 224, 122, 95;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -53,6 +57,8 @@
     --tag-text: #f0a893;
     --code-bg: #1a1714;
     --code-header: #221e1a;
+  --net-rgb: 150, 140, 128;
+  --net-accent-rgb: 224, 122, 95;
   }
 }
 
@@ -61,6 +67,7 @@
 }
 
 html {
+  background-color: var(--bg);
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -68,7 +75,7 @@ html {
 
 body {
   font-family: var(--font-serif);
-  background-color: var(--bg);
+  background-color: transparent;
   color: var(--text);
   line-height: 1.78;
   font-size: 1.125rem;
@@ -83,6 +90,15 @@ body {
 
 main {
   flex: 1;
+}
+
+/* Interactive neural-network background */
+.neural-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  display: block;
 }
 
 a {
@@ -292,9 +308,8 @@ button:focus-visible {
   margin: 0 0 0.85rem;
 }
 
-.hero-title em {
-  font-style: italic;
-  color: var(--accent);
+.diffusion-figure svg text {
+  letter-spacing: 0.02em;
 }
 
 .hero-lead {
@@ -329,6 +344,15 @@ button:focus-visible {
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.ledger-empty {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding: 1.5rem 0.25rem;
+  margin: 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .ledger-item {
@@ -716,29 +740,6 @@ pre code {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-/* About Page Colophon Box */
-.colophon-box {
-  margin-top: 2rem;
-  padding: 1.25rem 1.4rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 2px solid var(--accent);
-}
-
-.colophon-box h2 {
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin: 0 0 0.6rem;
-  color: var(--ink);
-}
-
-.colophon-box p {
-  margin: 0;
-  font-size: 0.98rem;
 }
 
 /* Footer */

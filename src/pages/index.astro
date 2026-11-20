@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import NeuralBackground from '../components/NeuralBackground.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { getCollection } from 'astro:content';
 
@@ -15,6 +16,36 @@ function formatDate(d: Date) {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}.${m}.${day}`;
 }
+// Diffusion figure: a heart emerging from noise over reverse-diffusion steps.
+const GRID = 12;
+const CELL = 3;
+const TILE = GRID * CELL;
+const GAP = 16;
+let seed = 7;
+const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+function target(gx: number, gy: number) {
+  const x = ((gx + 0.5) / GRID - 0.5) * 2.6;
+  const y = (0.5 - (gy + 0.5) / GRID) * 2.6 + 0.15;
+  const f = Math.pow(x * x + y * y - 1, 3) - x * x * y * y * y;
+  return f <= 0 ? 1 : 0;
+}
+const steps = [
+  { t: 1, label: 'xₜ' },
+  { t: 0.7, label: '' },
+  { t: 0.38, label: '' },
+  { t: 0, label: 'x₀' },
+];
+const tiles = steps.map(({ t, label }) => {
+  const cells = [];
+  for (let gy = 0; gy < GRID; gy++) {
+    for (let gx = 0; gx < GRID; gx++) {
+      const v = (1 - t) * target(gx, gy) + t * rand();
+      if (v > 0.06) cells.push({ x: gx, y: gy, v: Math.min(1, v).toFixed(2) });
+    }
+  }
+  return { label, cells };
+});
+const stripWidth = steps.length * TILE + (steps.length - 1) * GAP;
 ---
 
 <!doctype html>
@@ -23,38 +54,48 @@ function formatDate(d: Date) {
     <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
   </head>
   <body>
+    <NeuralBackground />
     <Header />
     <main>
       <section class="hero">
         <div>
-          <p class="kicker">Field Notes // Notebook</p>
+          <p class="kicker">Lab Notebook // AI &amp; ML</p>
           <h1 class="hero-title">
-            Notes on <em>mathematics</em>, ML systems &amp; engineering.
+            Notes on machine learning, LLMs &amp; building AI systems.
           </h1>
           <p class="hero-lead">{SITE_DESCRIPTION}</p>
         </div>
-        <figure class="hero-figure" aria-hidden="true">
-          <svg width="144" height="92" viewBox="0 0 144 92" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="8" y1="74" x2="136" y2="74" stroke="var(--border-strong)" stroke-width="1" />
-            <line x1="72" y1="10" x2="72" y2="82" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="2 3" />
-            <path
-              d="M 12 73 C 34 73, 44 68, 52 50 C 59 34, 65 18, 72 18 C 79 18, 85 34, 92 50 C 100 68, 110 73, 132 73"
-              stroke="var(--accent)"
-              stroke-width="1.6"
-              fill="var(--accent-soft)"
-            />
-            <circle cx="72" cy="18" r="2.5" fill="var(--accent)" />
+        <figure class="hero-figure diffusion-figure" aria-hidden="true">
+          <svg width={stripWidth} height={TILE + 16} viewBox={`0 0 ${stripWidth} ${TILE + 16}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+            {tiles.map((tile, i) => {
+              const x0 = i * (TILE + GAP);
+              return (
+                <g>
+                  <rect x={x0 + 0.5} y="0.5" width={TILE - 1} height={TILE - 1} fill="var(--surface)" stroke="var(--border-strong)" />
+                  {tile.cells.map((c) => (
+                    <rect x={x0 + c.x * CELL} y={c.y * CELL} width={CELL} height={CELL} fill="var(--accent)" fill-opacity={c.v} />
+                  ))}
+                  <text x={x0 + TILE / 2} y={TILE + 13} text-anchor="middle" font-size="9" fill="var(--muted)" font-family="var(--font-mono)">{tile.label}</text>
+                  {i < tiles.length - 1 && (
+                    <path d={`M ${x0 + TILE + 3} ${TILE / 2} h ${GAP - 6} m -3 -2.5 l 3 2.5 l -3 2.5`} stroke="var(--border-strong)" stroke-width="1" />
+                  )}
+                </g>
+              );
+            })}
           </svg>
-          <figcaption>exp(&minus;x&sup2;)</figcaption>
+          <figcaption>denoising: noise &rarr; sample</figcaption>
         </figure>
       </section>
 
       <section>
         <div class="section-bar">
-          <h2>Recent Essays</h2>
+          <h2>Recent Posts</h2>
           <span class="section-count">{String(posts.length).padStart(2, '0')} {posts.length === 1 ? 'entry' : 'entries'}</span>
         </div>
-        <ol class="ledger-list">
+        {posts.length === 0 && (
+        <p class="ledger-empty">No posts yet — the first one is on its way.</p>
+      )}
+      <ol class="ledger-list">
           {posts.map((post, i) => (
             <li class="ledger-item">
               <a href={`/blog/${post.id}/`} class="ledger-link">

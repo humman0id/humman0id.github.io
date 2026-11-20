@@ -1,0 +1,220 @@
+<canvas id="neural-bg" class="neural-bg" aria-hidden="true"></canvas>
+
+<script is:inline>
+  (function () {
+    const canvas = document.getElementById('neural-bg');
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const LINK_DIST = 140;
+    const CURSOR_DIST = 190;
+    let w = 0, h = 0, dpr = 1;
+    let nodes = [];
+    let pulses = [];
+    let rafId = null;
+    const pointer = { x: -9999, y: -9999, active: false };
+    let rgb = '111, 103, 94';
+    let accentRgb = '166, 58, 30';
+
+    function readColors() {
+      const s = getComputedStyle(document.documentElement);
+      rgb = s.getPropertyValue('--net-rgb').trim() || rgb;
+      accentRgb = s.getPropertyValue('--net-accent-rgb').trim() || accentRgb;
+    }
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const target = Math.max(28, Math.min(95, Math.floor((w * h) / 15000)));
+      while (nodes.length < target) nodes.push(makeNode());
+      if (nodes.length > target) nodes.length = target;
+      nodes.forEach((n) => {
+        n.x = Math.min(n.x, w);
+        n.y = Math.min(n.y, h);
+      });
+    }
+
+    function makeNode() {
+      const speed = 0.12 + Math.random() * 0.18;
+      const angle = Math.random() * Math.PI * 2;
+      return {
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        r: 1.2 + Math.random() * 1.4,
+        glow: 0,
+      };
+    }
+
+    // Fade the network where the reading column sits, so text stays legible.
+    function columnFade(x) {
+      const d = Math.abs(x - w / 2);
+      const half = Math.min(400, w * 0.42);
+      return d < half ? 0.35 + 0.65 * Math.pow(d / half, 2) : 1;
+    }
+
+    function step() {
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < -20) n.x = w + 20;
+        if (n.x > w + 20) n.x = -20;
+        if (n.y < -20) n.y = h + 20;
+        if (n.y > h + 20) n.y = -20;
+
+        if (pointer.active) {
+          const dx = pointer.x - n.x;
+          const dy = pointer.y - n.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < CURSOR_DIST && dist > 1) {
+            // Gentle "attention" pull toward the cursor.
+            const f = (1 - dist / CURSOR_DIST) * 0.012;
+            n.x += dx * f;
+            n.y += dy * f;
+          }
+        }
+        n.glow *= 0.94;
+      }
+
+      for (const p of pulses) {
+        p.r += 3.2;
+        for (const n of nodes) {
+          const d = Math.hypot(n.x - p.x, n.y - p.y);
+          if (Math.abs(d - p.r) < 6) n.glow = 1;
+        }
+      }
+      pulses = pulses.filter((p) => p.r < p.max);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+
+      // Edges between nearby neurons
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+          const b = nodes[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 > LINK_DIST * LINK_DIST) continue;
+          const d = Math.sqrt(d2);
+          const fade = columnFade((a.x + b.x) / 2);
+          const glow = Math.max(a.glow, b.glow);
+          const alpha = (1 - d / LINK_DIST) * 0.22 * fade;
+          ctx.strokeStyle = glow > 0.05
+            ? `rgba(${accentRgb}, ${Math.min(0.6, alpha + glow * 0.4)})`
+            : `rgba(${rgb}, ${alpha})`;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+
+      // Attention lines from the cursor
+      if (pointer.active) {
+        for (const n of nodes) {
+          const d = Math.hypot(pointer.x - n.x, pointer.y - n.y);
+          if (d > CURSOR_DIST) continue;
+          const alpha = (1 - d / CURSOR_DIST) * 0.45 * columnFade(n.x);
+          ctx.strokeStyle = `rgba(${accentRgb}, ${alpha})`;
+          ctx.lineWidth = 0.9;
+          ctx.beginPath();
+          ctx.moveTo(pointer.x, pointer.y);
+          ctx.lineTo(n.x, n.y);
+          ctx.stroke();
+        }
+      }
+
+      // Neurons
+      for (const n of nodes) {
+        const fade = columnFade(n.x);
+        let near = 0;
+        if (pointer.active) {
+          const d = Math.hypot(pointer.x - n.x, pointer.y - n.y);
+          near = d < CURSOR_DIST ? 1 - d / CURSOR_DIST : 0;
+        }
+        const act = Math.max(near, n.glow);
+        ctx.fillStyle = act > 0.05
+          ? `rgba(${accentRgb}, ${(0.35 + act * 0.55) * fade})`
+          : `rgba(${rgb}, ${0.4 * fade})`;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r + act * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Click pulses (forward-pass ripple)
+      for (const p of pulses) {
+        const alpha = (1 - p.r / p.max) * 0.25;
+        ctx.strokeStyle = `rgba(${accentRgb}, ${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    function loop() {
+      step();
+      draw();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function start() {
+      if (reduceMotion || rafId !== null) return;
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function stop() {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    window.addEventListener('resize', () => {
+      resize();
+      if (reduceMotion) draw();
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      pointer.active = e.pointerType === 'mouse' || e.pointerType === 'pen';
+    }, { passive: true });
+
+    document.documentElement.addEventListener('pointerleave', () => {
+      pointer.active = false;
+    });
+
+    window.addEventListener('pointerdown', (e) => {
+      if (reduceMotion) return;
+      pulses.push({ x: e.clientX, y: e.clientY, r: 0, max: Math.max(w, h) * 0.45 });
+      if (pulses.length > 4) pulses.shift();
+    }, { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    new MutationObserver(() => {
+      readColors();
+      if (reduceMotion) draw();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    readColors();
+    resize();
+    draw();
+    start();
+  })();
+</script>

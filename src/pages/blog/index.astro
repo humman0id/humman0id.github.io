@@ -2,6 +2,7 @@
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import NeuralBackground from '../../components/NeuralBackground.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 import { getCollection } from 'astro:content';
 
@@ -20,18 +21,22 @@ function formatDate(d: Date) {
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={`Essays | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+    <BaseHead title={`Posts | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
   </head>
   <body>
+    <NeuralBackground />
     <Header />
     <main>
-      <p class="kicker">Archive // Complete Index</p>
-      <h1 style="margin-top: 0; margin-bottom: 1.75rem;">Essays &amp; Notes</h1>
+      <p class="kicker">Archive // Lab Notebook</p>
+      <h1 style="margin-top: 0; margin-bottom: 1.75rem;">All Posts</h1>
 
       <div class="section-bar">
         <h2>Chronological Ledger</h2>
         <span class="section-count">{String(posts.length).padStart(2, '0')} {posts.length === 1 ? 'entry' : 'entries'}</span>
       </div>
+      {posts.length === 0 && (
+        <p class="ledger-empty">No posts yet — the first one is on its way.</p>
+      )}
       <ol class="ledger-list">
         {posts.map((post, i) => (
           <li class="ledger-item">

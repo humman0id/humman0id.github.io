@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import NeuralBackground from '../components/NeuralBackground.astro';
 import { SITE_TITLE } from '../consts';
 ---
 
@@ -11,21 +12,16 @@ import { SITE_TITLE } from '../consts';
     <BaseHead title={`About | ${SITE_TITLE}`} description="About me and this blog." />
   </head>
   <body>
+    <NeuralBackground />
     <Header />
     <main>
-      <p class="kicker">About // Colophon</p>
+      <p class="kicker">About // Lab Notebook</p>
       <h1 style="margin-top: 0;">About</h1>
       <p>
-        Welcome to my personal notebook. I write about mathematics, machine learning systems,
-        and software engineering.
+        Welcome to my lab notebook. I write about machine learning, large language models,
+        and the engineering it takes to turn AI experiments into systems people can use —
+        training runs, evals, inference, tooling, and the occasional failure post-mortem.
       </p>
-      <div class="colophon-box">
-        <h2>Colophon</h2>
-        <p>
-          Typeset in Newsreader and IBM Plex Mono, with equations rendered via KaTeX.
-          Built statically with Astro and deployed on GitHub Pages.
-        </p>
-      </div>
     </main>
     <Footer />
   </body>

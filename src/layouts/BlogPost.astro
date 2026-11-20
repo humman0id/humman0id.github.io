@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import NeuralBackground from '../components/NeuralBackground.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & {
   readingTime?: number;
@@ -17,10 +18,11 @@ const { title, description, pubDate, updatedDate, tags, readingTime } = Astro.pr
     <BaseHead title={title} description={description} />
   </head>
   <body id="top">
+    <NeuralBackground />
     <div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
     <Header />
     <main>
-      <a href="/blog/" class="back-link">&larr; All essays</a>
+      <a href="/blog/" class="back-link">&larr; All posts</a>
       <article>
         <header class="post-header">
           <div class="post-meta">
@@ -57,7 +59,7 @@ const { title, description, pubDate, updatedDate, tags, readingTime } = Astro.pr
 
         <div class="post-content">
           <slot />
-          <div class="post-endmark" aria-hidden="true" title="End of essay">&#8718;</div>
+          <div class="post-endmark" aria-hidden="true" title="End of post">&#8718;</div>
         </div>
 
         <div class="post-footer-nav">
