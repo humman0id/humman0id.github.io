@@ -1,13 +1,55 @@
 ---
 import { SITE_TITLE } from '../consts';
+
+const pathname = Astro.url.pathname;
+const isPosts = pathname.startsWith('/blog');
+const isAbout = pathname.startsWith('/about');
+const isHome = pathname === '/';
 ---
 
-<header>
+<header class="site-header">
   <a href="/" class="site-title">{SITE_TITLE}</a>
-  <nav>
-    <a href="/">Home</a>
-    <a href="/blog">Posts</a>
-    <a href="/about">About</a>
-    <a href="/rss.xml">RSS</a>
-  </nav>
+  <div class="header-right">
+    <nav aria-label="Primary">
+      <a href="/" class={isHome ? 'active' : ''}>Home</a>
+      <a href="/blog/" class={isPosts ? 'active' : ''}>Posts</a>
+      <a href="/about/" class={isAbout ? 'active' : ''}>About</a>
+      <a href="/rss.xml">RSS</a>
+    </nav>
+    <button
+      id="theme-toggle"
+      class="theme-toggle"
+      type="button"
+      aria-label="Toggle color theme"
+      title="Toggle color theme"
+    >
+      <span id="theme-icon" aria-hidden="true">☀</span>
+    </button>
+  </div>
 </header>
+
+<script is:inline>
+  (function () {
+    const btn = document.getElementById('theme-toggle');
+    const icon = document.getElementById('theme-icon');
+    if (!btn || !icon) return;
+
+    function syncIcon() {
+      const isDark = document.documentElement.dataset.theme === 'dark';
+      icon.textContent = isDark ? '☾' : '☀';
+      btn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+
+    syncIcon();
+
+    btn.addEventListener('click', () => {
+      const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      try {
+        localStorage.setItem('theme', next);
+      } catch (_) {}
+      syncIcon();
+    });
+  })();
+</script>

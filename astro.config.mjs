@@ -9,6 +9,12 @@ export default defineConfig({
   site: 'https://humman0id.github.io',
   integrations: [mdx(), sitemap()],
   markdown: {
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
     remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],
   },

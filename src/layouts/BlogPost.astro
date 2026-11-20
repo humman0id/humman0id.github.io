@@ -4,45 +4,115 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & {
+  readingTime?: number;
+};
 
-const { title, description, pubDate, updatedDate, tags } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, readingTime } = Astro.props;
 ---
 
+<!doctype html>
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} />
   </head>
   <body>
+    <div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
     <Header />
     <main>
+      <a href="/blog/" class="back-link">&larr; All posts</a>
       <article>
-        <div style="margin-bottom: 2rem;">
-          <h1 style="margin-top: 0;">{title}</h1>
-          <div style="color: var(--muted); font-size: 0.9rem;">
+        <header class="post-header">
+          <div class="post-meta">
             <time datetime={pubDate.toISOString()}>
               {pubDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}
             </time>
+            {readingTime && (
+              <>
+                <span aria-hidden="true">&middot;</span>
+                <span>{readingTime} min read</span>
+              </>
+            )}
             {updatedDate && (
-              <span>
-                {' '} (Updated: {updatedDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })})
-              </span>
+              <>
+                <span aria-hidden="true">&middot;</span>
+                <span>
+                  Updated {updatedDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </span>
+              </>
             )}
           </div>
+          <h1 class="post-title">{title}</h1>
+          {description && <p class="post-description">{description}</p>}
           {tags && tags.length > 0 && (
-            <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <div class="tag-list">
               {tags.map((tag) => (
-                <span style="font-size: 0.8rem; background: var(--code-bg); padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border);">
-                  #{tag}
-                </span>
+                <span class="tag-pill">#{tag}</span>
               ))}
             </div>
           )}
+        </header>
+        <hr />
+        <div class="post-content">
+          <slot />
         </div>
-        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 2rem;" />
-        <slot />
+        <div class="post-footer-nav">
+          <a href="/blog/" class="back-link" style="margin-bottom: 0;">&larr; Back to all posts</a>
+        </div>
       </article>
     </main>
     <Footer />
+
+    <script is:inline>
+      (function () {
+        // Reading progress bar
+        const progress = document.getElementById('reading-progress');
+        function updateProgress() {
+          if (!progress) return;
+          const scrollTop = window.scrollY;
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const pct = docHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / docHeight) * 100)) : 0;
+          progress.style.width = pct + '%';
+        }
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        updateProgress();
+
+        // Enhance code blocks with language header and copy button
+        document.querySelectorAll('.post-content pre').forEach((pre) => {
+          if (pre.parentElement && pre.parentElement.classList.contains('code-block-wrapper')) return;
+          const lang = pre.getAttribute('data-language') || 'text';
+          const wrapper = document.createElement('div');
+          wrapper.className = 'code-block-wrapper';
+
+          const bar = document.createElement('div');
+          bar.className = 'code-block-header';
+
+          const label = document.createElement('span');
+          label.textContent = lang;
+
+          const copyBtn = document.createElement('button');
+          copyBtn.type = 'button';
+          copyBtn.className = 'code-copy-btn';
+          copyBtn.textContent = 'Copy';
+          copyBtn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(pre.innerText);
+              copyBtn.textContent = 'Copied!';
+              setTimeout(() => {
+                copyBtn.textContent = 'Copy';
+              }, 1600);
+            } catch (_) {
+              copyBtn.textContent = 'Failed';
+            }
+          });
+
+          bar.appendChild(label);
+          bar.appendChild(copyBtn);
+          pre.parentNode.insertBefore(wrapper, pre);
+          wrapper.appendChild(bar);
+          wrapper.appendChild(pre);
+        });
+      })();
+    </script>
   </body>
 </html>

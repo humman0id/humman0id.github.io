@@ -19,20 +19,18 @@ const posts = (await getCollection('blog'))
     <Header />
     <main>
       <h1 style="margin-top: 0;">All Posts</h1>
-      <ul style="list-style: none; padding: 0;">
+      <ul class="post-list">
         {posts.map((post) => (
-          <li style="margin-bottom: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;">
-              <a href={`/blog/${post.id}/`} style="font-weight: 600; font-size: 1.1rem;">
-                {post.data.title}
-              </a>
-              <time style="color: var(--muted); font-size: 0.85rem; white-space: nowrap;">
-                {post.data.pubDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}
-              </time>
-            </div>
-            <p style="margin: 0.25rem 0 0; color: var(--muted); font-size: 0.95rem;">
-              {post.data.description}
-            </p>
+          <li>
+            <a href={`/blog/${post.id}/`} class="post-card">
+              <div class="post-card-top">
+                <span class="post-card-title">{post.data.title}</span>
+                <time class="post-card-date">
+                  {post.data.pubDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </time>
+              </div>
+              <p class="post-card-desc">{post.data.description}</p>
+            </a>
           </li>
         ))}
       </ul>
