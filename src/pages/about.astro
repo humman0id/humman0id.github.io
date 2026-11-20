@@ -13,14 +13,19 @@ import { SITE_TITLE } from '../consts';
   <body>
     <Header />
     <main>
+      <p class="kicker">About // Colophon</p>
       <h1 style="margin-top: 0;">About</h1>
       <p>
-        Welcome to my personal blog. I write about mathematics, machine learning systems,
+        Welcome to my personal notebook. I write about mathematics, machine learning systems,
         and software engineering.
       </p>
-      <p>
-        Built with Astro, styled with minimal CSS, and deployed automatically on GitHub Pages.
-      </p>
+      <div class="colophon-box">
+        <h2>Colophon</h2>
+        <p>
+          Typeset in Newsreader and IBM Plex Mono, with equations rendered via KaTeX.
+          Built statically with Astro and deployed on GitHub Pages.
+        </p>
+      </div>
     </main>
     <Footer />
   </body>

@@ -8,32 +8,56 @@ import { getCollection } from 'astro:content';
 const posts = (await getCollection('blog'))
   .filter((post) => !post.data.draft)
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+function formatDate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}.${m}.${day}`;
+}
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={`All Posts | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+    <BaseHead title={`Essays | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
   </head>
   <body>
     <Header />
     <main>
-      <h1 style="margin-top: 0;">All Posts</h1>
-      <ul class="post-list">
-        {posts.map((post) => (
-          <li>
-            <a href={`/blog/${post.id}/`} class="post-card">
-              <div class="post-card-top">
-                <span class="post-card-title">{post.data.title}</span>
-                <time class="post-card-date">
-                  {post.data.pubDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}
-                </time>
+      <p class="kicker">Archive // Complete Index</p>
+      <h1 style="margin-top: 0; margin-bottom: 1.75rem;">Essays &amp; Notes</h1>
+
+      <div class="section-bar">
+        <h2>Chronological Ledger</h2>
+        <span class="section-count">{String(posts.length).padStart(2, '0')} {posts.length === 1 ? 'entry' : 'entries'}</span>
+      </div>
+      <ol class="ledger-list">
+        {posts.map((post, i) => (
+          <li class="ledger-item">
+            <a href={`/blog/${post.id}/`} class="ledger-link">
+              <span class="ledger-num">{String(posts.length - i).padStart(2, '0')}</span>
+              <div class="ledger-body">
+                <span class="ledger-title">{post.data.title}</span>
+                <p class="ledger-desc">{post.data.description}</p>
+                {post.data.tags && post.data.tags.length > 0 && (
+                  <div class="ledger-tags">
+                    {post.data.tags.map((tag) => (
+                      <span class="ledger-tag">#{tag}</span>
+                    ))}
+                  </div>
+                )}
               </div>
-              <p class="post-card-desc">{post.data.description}</p>
+              <div class="ledger-aside">
+                <time class="ledger-date" datetime={post.data.pubDate.toISOString()}>
+                  {formatDate(post.data.pubDate)}
+                </time>
+                <span class="ledger-arrow" aria-hidden="true">&#8599;</span>
+              </div>
             </a>
           </li>
         ))}
-      </ul>
+      </ol>
     </main>
     <Footer />
   </body>

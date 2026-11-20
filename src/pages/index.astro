@@ -8,6 +8,13 @@ import { getCollection } from 'astro:content';
 const posts = (await getCollection('blog'))
   .filter((post) => !post.data.draft)
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+function formatDate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}.${m}.${day}`;
+}
 ---
 
 <!doctype html>
@@ -18,28 +25,61 @@ const posts = (await getCollection('blog'))
   <body>
     <Header />
     <main>
-      <section style="margin-bottom: 3rem;">
-        <h1 style="margin-top: 0;">Welcome</h1>
-        <p>{SITE_DESCRIPTION}</p>
+      <section class="hero">
+        <div>
+          <p class="kicker">Field Notes // Notebook</p>
+          <h1 class="hero-title">
+            Notes on <em>mathematics</em>, ML systems &amp; engineering.
+          </h1>
+          <p class="hero-lead">{SITE_DESCRIPTION}</p>
+        </div>
+        <figure class="hero-figure" aria-hidden="true">
+          <svg width="144" height="92" viewBox="0 0 144 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="8" y1="74" x2="136" y2="74" stroke="var(--border-strong)" stroke-width="1" />
+            <line x1="72" y1="10" x2="72" y2="82" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="2 3" />
+            <path
+              d="M 12 73 C 34 73, 44 68, 52 50 C 59 34, 65 18, 72 18 C 79 18, 85 34, 92 50 C 100 68, 110 73, 132 73"
+              stroke="var(--accent)"
+              stroke-width="1.6"
+              fill="var(--accent-soft)"
+            />
+            <circle cx="72" cy="18" r="2.5" fill="var(--accent)" />
+          </svg>
+          <figcaption>exp(&minus;x&sup2;)</figcaption>
+        </figure>
       </section>
 
       <section>
-        <h2>Recent Posts</h2>
-        <ul class="post-list">
-          {posts.map((post) => (
-            <li>
-              <a href={`/blog/${post.id}/`} class="post-card">
-                <div class="post-card-top">
-                  <span class="post-card-title">{post.data.title}</span>
-                  <time class="post-card-date">
-                    {post.data.pubDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}
-                  </time>
+        <div class="section-bar">
+          <h2>Recent Essays</h2>
+          <span class="section-count">{String(posts.length).padStart(2, '0')} {posts.length === 1 ? 'entry' : 'entries'}</span>
+        </div>
+        <ol class="ledger-list">
+          {posts.map((post, i) => (
+            <li class="ledger-item">
+              <a href={`/blog/${post.id}/`} class="ledger-link">
+                <span class="ledger-num">{String(posts.length - i).padStart(2, '0')}</span>
+                <div class="ledger-body">
+                  <span class="ledger-title">{post.data.title}</span>
+                  <p class="ledger-desc">{post.data.description}</p>
+                  {post.data.tags && post.data.tags.length > 0 && (
+                    <div class="ledger-tags">
+                      {post.data.tags.map((tag) => (
+                        <span class="ledger-tag">#{tag}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <p class="post-card-desc">{post.data.description}</p>
+                <div class="ledger-aside">
+                  <time class="ledger-date" datetime={post.data.pubDate.toISOString()}>
+                    {formatDate(post.data.pubDate)}
+                  </time>
+                  <span class="ledger-arrow" aria-hidden="true">&#8599;</span>
+                </div>
               </a>
             </li>
           ))}
-        </ul>
+        </ol>
       </section>
     </main>
     <Footer />
