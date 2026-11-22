@@ -742,6 +742,42 @@ pre code {
   align-items: center;
 }
 
+/* About Page AI Disclosure */
+.disclosure {
+  margin-top: 2.25rem;
+  padding: 1.15rem 1.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+}
+
+.disclosure h2 {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 0.6rem;
+  padding: 0;
+  border: 0;
+}
+
+.disclosure p {
+  font-size: 0.98rem;
+  line-height: 1.65;
+  margin: 0 0 0.65rem;
+}
+
+.disclosure p:last-child {
+  margin-bottom: 0;
+}
+
+.disclosure strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 /* Footer */
 .site-footer {
   margin-top: 4rem;
